@@ -43,6 +43,8 @@ PLOTLY_TEMPLATE = {
         },
     }
 }
+
+CUSTOM_CSS = """
 <style>
     /* Main container styling */
     .stApp {
