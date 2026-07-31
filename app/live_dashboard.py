@@ -9,13 +9,15 @@ import plotly.express as px
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-# Ensure src is importable
+# Ensure app and src modules are importable in both local and Streamlit Cloud execution
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SRC_DIR = os.path.join(ROOT_DIR, "src")
+APP_DIR = os.path.dirname(__file__)
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
+if APP_DIR not in sys.path:
+    sys.path.insert(0, APP_DIR)
+if os.path.join(ROOT_DIR, "src") not in sys.path:
+    sys.path.insert(0, os.path.join(ROOT_DIR, "src"))
 
 from live_data import live_stock_data, live_news_data, LiveStockData, LiveNewsData
 from feature_engineering import create_features
