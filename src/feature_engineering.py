@@ -65,51 +65,66 @@ def add_technical_indicators(df: pd.DataFrame, fillna: bool = True) -> pd.DataFr
     df["EMA_20"] = df["Close"].ewm(span=20, adjust=False).mean()
     df["EMA_50"] = df["Close"].ewm(span=50, adjust=False).mean()
 
-    # RSI
-    df["RSI_14"] = _rsi(df["Close"], length=14)
+    # RSI (only add if pandas_ta not available to avoid duplication)
+    if not PANDAS_TA_AVAILABLE:
+        df["RSI_14"] = _rsi(df["Close"], length=14)
 
-    # MACD
-    macd = _macd(df["Close"], fast=12, slow=26, signal=9)
-    df = pd.concat([df, macd], axis=1)
+    # MACD (only add if pandas_ta not available to avoid duplication)
+    if not PANDAS_TA_AVAILABLE:
+        macd = _macd(df["Close"], fast=12, slow=26, signal=9)
+        df = pd.concat([df, macd], axis=1)
 
-    # Bollinger Bands
-    bbands = _bollinger_bands(df["Close"], length=20, std=2)
-    df = pd.concat([df, bbands], axis=1)
+    # Bollinger Bands (only add if pandas_ta not available to avoid duplication)
+    if not PANDAS_TA_AVAILABLE:
+        bbands = _bollinger_bands(df["Close"], length=20, std=2)
+        df = pd.concat([df, bbands], axis=1)
 
     # Additional indicators using pandas-ta
     if PANDAS_TA_AVAILABLE:
         try:
             # RSI using pandas-ta
-            df["RSI_14_ta"] = ta.rsi(df["Close"], length=14)
+            rsi_result = ta.rsi(df["Close"], length=14)
+            if rsi_result is not None:
+                df["RSI_14"] = rsi_result
 
             # MACD using pandas-ta
             macd_ta = ta.macd(df["Close"], fast=12, slow=26, signal=9)
             if macd_ta is not None:
-                df = pd.concat([df, macd_ta], axis=1)
+                # Ensure no column name conflicts
+                macd_ta_cols = macd_ta.columns.tolist()
+                for col in macd_ta_cols:
+                    if col not in df.columns:
+                        df[col] = macd_ta[col]
 
             # Bollinger Bands using pandas-ta
             bb_ta = ta.bbands(df["Close"], length=20, std=2)
             if bb_ta is not None:
-                df = pd.concat([df, bb_ta], axis=1)
+                bb_ta_cols = bb_ta.columns.tolist()
+                for col in bb_ta_cols:
+                    if col not in df.columns:
+                        df[col] = bb_ta[col]
 
             # Stochastic Oscillator
             stoch = ta.stoch(df["High"], df["Low"], df["Close"])
             if stoch is not None:
-                df = pd.concat([df, stoch], axis=1)
+                stoch_cols = stoch.columns.tolist()
+                for col in stoch_cols:
+                    if col not in df.columns:
+                        df[col] = stoch[col]
 
             # Williams %R
             willr = ta.willr(df["High"], df["Low"], df["Close"])
-            if willr is not None:
+            if willr is not None and "WILLR_14" not in df.columns:
                 df["WILLR_14"] = willr
 
             # Commodity Channel Index
             cci = ta.cci(df["High"], df["Low"], df["Close"])
-            if cci is not None:
+            if cci is not None and "CCI_14" not in df.columns:
                 df["CCI_14"] = cci
 
             # Average True Range
             atr = ta.atr(df["High"], df["Low"], df["Close"])
-            if atr is not None:
+            if atr is not None and "ATR_14" not in df.columns:
                 df["ATR_14"] = atr
 
         except Exception as e:
@@ -120,6 +135,9 @@ def add_technical_indicators(df: pd.DataFrame, fillna: bool = True) -> pd.DataFr
         # `NDFrame.fillna(method=...)` may not be supported in all pandas versions,
         # so use the explicit `ffill`/`bfill` helpers to ensure compatibility.
         df = df.ffill().bfill()
+
+    # Remove any remaining duplicate columns
+    df = df.loc[:, ~df.columns.duplicated(keep='first')]
 
     return df
 

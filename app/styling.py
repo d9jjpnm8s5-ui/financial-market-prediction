@@ -1,6 +1,48 @@
 """Professional CSS styling for Streamlit dashboard"""
 
-CUSTOM_CSS = """
+# Professional color palette for charts
+CHART_COLORS = {
+    "primary": "#2563eb",      # Blue
+    "success": "#10b981",      # Green
+    "danger": "#ef4444",       # Red
+    "warning": "#f59e0b",      # Amber
+    "secondary": "#8b5cf6",    # Purple
+    "info": "#06b6d4",         # Cyan
+}
+
+SENTIMENT_COLORS = {
+    "positive": "#10b981",     # Green
+    "negative": "#ef4444",     # Red
+    "neutral": "#6b7280",      # Gray
+}
+
+# Plotly template with dark theme and colors
+PLOTLY_TEMPLATE = {
+    "layout": {
+        "paper_bgcolor": "#0b1120",
+        "plot_bgcolor": "#111827",
+        "font": {"color": "#e2e8f0", "family": "Arial"},
+        "colorway": [
+            "#2563eb",  # Blue
+            "#10b981",  # Green
+            "#ef4444",  # Red
+            "#f59e0b",  # Amber
+            "#8b5cf6",  # Purple
+            "#06b6d4",  # Cyan
+            "#ec4899",  # Pink
+            "#14b8a6",  # Teal
+        ],
+        "title": {"font": {"size": 18, "color": "#e2e8f0"}},
+        "xaxis": {
+            "gridcolor": "rgba(148, 163, 184, 0.1)",
+            "linecolor": "rgba(148, 163, 184, 0.3)",
+        },
+        "yaxis": {
+            "gridcolor": "rgba(148, 163, 184, 0.1)",
+            "linecolor": "rgba(148, 163, 184, 0.3)",
+        },
+    }
+}
 <style>
     /* Main container styling */
     .stApp {
@@ -178,3 +220,24 @@ def apply_custom_styling():
     """Apply custom CSS to Streamlit app"""
     import streamlit as st
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+def apply_plotly_theme(fig):
+    """Apply professional theme to Plotly figure"""
+    fig.update_layout(**PLOTLY_TEMPLATE["layout"])
+    return fig
+
+
+def get_sentiment_color(sentiment: str) -> str:
+    """Get color for sentiment label"""
+    sentiment_lower = str(sentiment).lower()
+    if "positive" in sentiment_lower or "bullish" in sentiment_lower:
+        return SENTIMENT_COLORS["positive"]
+    elif "negative" in sentiment_lower or "bearish" in sentiment_lower:
+        return SENTIMENT_COLORS["negative"]
+    else:
+        return SENTIMENT_COLORS["neutral"]
+
+
+def get_chart_color_scale(n_colors: int = 7) -> list:
+    """Get a color scale for multi-series charts"""
+    return PLOTLY_TEMPLATE["layout"]["colorway"][:n_colors]

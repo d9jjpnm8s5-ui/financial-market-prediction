@@ -20,12 +20,14 @@ ECONOMIC_TIMES_CSV = os.path.abspath(
 
 
 def load_news_data(path: str = None) -> pd.DataFrame:
-    """Load Economic Times news dataset."""
+    """Load Economic Times news dataset. Returns empty DataFrame if file not found."""
     if path is None:
         path = ECONOMIC_TIMES_CSV
 
+    # If news CSV doesn't exist, return empty DataFrame (graceful fallback)
     if not os.path.isfile(path):
-        raise FileNotFoundError(f"News CSV not found at {path}")
+        # Return an empty DataFrame with expected columns
+        return pd.DataFrame(columns=['headline', 'content', 'date', 'link'])
 
     # Try to load with UTF-8; fall back to common encodings if there are decoding issues.
     try:
@@ -35,6 +37,9 @@ def load_news_data(path: str = None) -> pd.DataFrame:
             df = pd.read_csv(path, encoding="latin-1")
         except UnicodeDecodeError:
             df = pd.read_csv(path, encoding="cp1252")
+    except Exception:
+        # If any other error occurs during loading, return empty DataFrame
+        return pd.DataFrame(columns=['headline', 'content', 'date', 'link'])
 
     # Standardize column names
     df.columns = [c.strip() for c in df.columns]

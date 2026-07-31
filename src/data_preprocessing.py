@@ -112,11 +112,21 @@ def load_stock_data(ticker: str, data_dir: str = None) -> pd.DataFrame:
         import yfinance as yf
         # Append .NS suffix for Indian stocks if not already present
         symbol = ticker if ticker.endswith(".NS") else f"{ticker}.NS"
-        df = yf.download(symbol, progress=False)
+        data = yf.download(symbol, progress=False)
+        
+        # Handle case where yfinance returns None or empty
+        if data is None or data.empty:
+            raise ValueError(f"No data returned from yfinance for {symbol}")
         
         # Reset index to make Date a column
-        df = df.reset_index()
-        df.columns = [c.strip() for c in df.columns]
+        if isinstance(data.columns, pd.MultiIndex):
+            # If MultiIndex, flatten it
+            data.columns = ['_'.join(col).strip() if col[1] else col[0] for col in data.columns.values]
+        
+        df = data.reset_index()
+        
+        # Ensure column names are strings and strip whitespace
+        df.columns = [str(c).strip() for c in df.columns]
         
         # Standardize column names (yfinance uses 'Date' or 'Datetime')
         if "Datetime" in df.columns:
