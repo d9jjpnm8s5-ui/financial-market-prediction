@@ -714,23 +714,23 @@ def render_news_sentiment(selected_company: str, tickers: List[str]):
             y=trend_data['total'],
             mode='lines+markers',
             name='Total',
-            marker=dict(color='white', size=6),
-            line=dict(color='white', width=2, dash='dash')
+            marker=dict(color='#1f2937', size=6),
+            line=dict(color='#1f2937', width=2, dash='dash')
         ))
 
         fig_summary.update_layout(
             title='News Sentiment Trend',
             xaxis_title='Date',
             yaxis_title='Number of Articles',
-            template='plotly_dark',
+            template='plotly_white',
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             barmode='stack',
             height=420,
             hovermode='x unified',
-            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(0,0,0,0.35)'),
-            xaxis=dict(tickangle=-45, categoryorder='category ascending'),
-            yaxis=dict(tick0=0, dtick=1, rangemode='tozero'),
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, bgcolor='rgba(255,255,255,0.75)'),
+            xaxis=dict(tickangle=-45, categoryorder='category ascending', tickfont={'color': '#374151'}),
+            yaxis=dict(tick0=0, dtick=1, rangemode='tozero', tickfont={'color': '#374151'}),
             bargap=0.12,
             bargroupgap=0.02
         )

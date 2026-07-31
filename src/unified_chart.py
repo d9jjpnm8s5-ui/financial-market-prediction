@@ -150,9 +150,9 @@ def build_unified_technical_chart(
         ))
 
     fig.update_layout(
-        title=dict(text=f"{ticker} - Live Chart with Technical Analysis", font=dict(size=18, color='#ffffff')),
+        title=dict(text=f"{ticker} - Live Chart with Technical Analysis", font=dict(size=18, color='#0f172a')),
         hovermode='x unified',
-        template='plotly_dark',
+        template='plotly_white',
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         height=700,
@@ -163,32 +163,32 @@ def build_unified_technical_chart(
             y=1.02,
             xanchor='right',
             x=1,
-            bgcolor='rgba(0,0,0,0.5)',
-            bordercolor='rgba(255,255,255,0.2)',
+            bgcolor='rgba(255,255,255,0.7)',
+            bordercolor='rgba(148,163,184,0.2)',
             borderwidth=1
         ),
         yaxis=dict(
             title={"text": 'Price (₹)', "font": {"color": '#1f77b4'}},
             tickfont={"color": '#1f77b4'},
-            gridcolor='rgba(255,255,255,0.08)'
+            gridcolor='rgba(148,163,184,0.15)'
         ),
         yaxis2=dict(
-            title={"text": 'Indicators', "font": {"color": '#94a3b8'}},
-            tickfont={"color": '#94a3b8'},
+            title={"text": 'Indicators', "font": {"color": '#475569'}},
+            tickfont={"color": '#475569'},
             overlaying='y',
             side='right',
             position=0.92,
-            showgrid=False,
-            anchor='free'
+            gridcolor='rgba(148,163,184,0.15)',
+            zeroline=False,
+            showline=True,
+            linecolor='rgba(15,23,42,0.2)'
         ),
-        yaxis3=dict(
-            title={"text": 'Volume', "font": {"color": '#cbd5e1'}},
-            tickfont={"color": '#cbd5e1'},
-            overlaying='y',
-            side='right',
-            position=0.98,
-            showgrid=False,
-            anchor='free'
+        xaxis=dict(
+            title={"text": 'Date', "font": {"color": '#475569'}},
+            tickfont={"color": '#475569'},
+            gridcolor='rgba(148,163,184,0.15)',
+            showline=True,
+            linecolor='rgba(15,23,42,0.2)'
         )
     )
 
