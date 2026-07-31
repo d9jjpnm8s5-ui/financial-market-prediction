@@ -24,7 +24,7 @@ pip install -r requirements.txt
 python -c "import nltk; nltk.download('vader_lexicon'); nltk.download('punkt')"
 
 # Run the application
-streamlit run app/dashboard.py
+streamlit run app/live_dashboard.py
 ```
 
 ### Docker Deployment
@@ -46,7 +46,7 @@ COPY . .
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "app/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/live_dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
 Build and run:
@@ -60,7 +60,7 @@ docker run -p 8501:8501 stock-market-app
 
 1. Create `Procfile`:
 ```
-web: streamlit run app/dashboard.py --server.port=$PORT --server.address=0.0.0.0
+web: streamlit run app/live_dashboard.py --server.port=$PORT --server.address=0.0.0.0
 ```
 
 2. Create `.streamlit/config.toml` for production:

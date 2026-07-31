@@ -2,14 +2,14 @@
 
 ## Current Status
 ✅ App is running locally on `http://127.0.0.1:8501`  
-✅ Entry point: `app/dashboard.py` (at repository root)  
+✅ Entry point: `app/live_dashboard.py` (at repository root)  
 ✅ Dependencies optimized for Streamlit Cloud  
 ✅ Repository synced with GitHub  
 
 ## Quick Deployment Steps
 
 ### Step 1: Push to GitHub
-All changes are automatically saved to `https://github.com/naman00008/financial-market-prediction`
+All changes are automatically saved to `https://github.com/d9jjpnm8s5-ui/financial-market-prediction`
 
 ```bash
 cd /Users/namanvyas/Desktop/sentiment\ analysis
@@ -24,9 +24,9 @@ git push origin main
 2. Sign in with your GitHub account
 3. Click **"New app"**
 4. Configuration:
-   - **Repository:** `naman00008/financial-market-prediction`
+   - **Repository:** `d9jjpnm8s5-ui/financial-market-prediction`
    - **Branch:** `main`
-   - **Main file path:** `app/dashboard.py`
+   - **Main file path:** `app/live_dashboard.py`
 5. Click **"Deploy"**
 
 ### Step 3: Monitor Deployment
@@ -67,5 +67,5 @@ After initial setup, any push to `main` will trigger automatic redeployment!
 
 ## Support Resources
 - Streamlit Cloud docs: https://docs.streamlit.io/streamlit-cloud
-- GitHub repo: https://github.com/naman00008/financial-market-prediction
+- GitHub repo: https://github.com/d9jjpnm8s5-ui/financial-market-prediction
 - Streamlit community: https://discuss.streamlit.io
