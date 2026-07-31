@@ -1,0 +1,23 @@
+[theme]
+primaryColor = "#1e40af"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f4f6"
+textColor = "#1f2937"
+font = "sans serif"
+
+[client]
+showErrorDetails = false
+toolbarMode = "viewer"
+
+[logger]
+level = "error"
+
+[server]
+headless = true
+runOnSave = true
+maxUploadSize = 200
+port = 8501
+
+[browser]
+gatherUsageStats = false
+serverAddress = "localhost"
