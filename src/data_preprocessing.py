@@ -4,15 +4,13 @@ from functools import lru_cache
 import pandas as pd
 
 
-DATA_ROOT = os.path.join(os.path.dirname(__file__), os.pardir, "..")
-# Use absolute path to the dataset folder in the workspace
-NIFTY50_FOLDER = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, "..", "NSE-Data-main", "Nifty50 Stocks 20 Year Data")
-)
-# Additional NSE stocks dataset
-NSE_STOCKS_FOLDER = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, "..", "NSE-stock-market-historical-data-main", "v1")
-)
+# Determine the project root directory (works in Streamlit Cloud and local)
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.dirname(_current_dir)  # Go up from src/ to project root
+
+# Define data folder paths (compatible with Streamlit Cloud)
+NIFTY50_FOLDER = os.path.join(_project_root, "NSE-Data-main", "Nifty50 Stocks 20 Year Data")
+NSE_STOCKS_FOLDER = os.path.join(_project_root, "NSE-stock-market-historical-data-main", "v1")
 
 
 @lru_cache(maxsize=32)
@@ -28,56 +26,110 @@ def list_nifty50_companies():
 
 @lru_cache(maxsize=32)
 def list_available_companies():
-    """List all available company tickers from both Nifty50 and NSE datasets."""
+    """List all available company tickers from both Nifty50 and NSE datasets.
+    Falls back to NIFTY 50 default list if local data folders are not found (e.g., in Streamlit Cloud)."""
     tickers = set()
 
     # Add Nifty50 stocks
     if os.path.isdir(NIFTY50_FOLDER):
-        files = [f for f in os.listdir(NIFTY50_FOLDER) if f.endswith(".csv")]
-        nifty_tickers = [os.path.splitext(f)[0] for f in files]
-        tickers.update(nifty_tickers)
+        try:
+            files = [f for f in os.listdir(NIFTY50_FOLDER) if f.endswith(".csv")]
+            nifty_tickers = [os.path.splitext(f)[0] for f in files]
+            tickers.update(nifty_tickers)
+        except Exception:
+            pass  # Silently continue if unable to list
 
     # Add NSE stocks (remove .NS suffix)
     if os.path.isdir(NSE_STOCKS_FOLDER):
-        files = [f for f in os.listdir(NSE_STOCKS_FOLDER) if f.endswith(".NS.csv")]
-        nse_tickers = [os.path.splitext(os.path.splitext(f)[0])[0] for f in files]  # Remove both .NS and .csv
-        tickers.update(nse_tickers)
+        try:
+            files = [f for f in os.listdir(NSE_STOCKS_FOLDER) if f.endswith(".NS.csv")]
+            nse_tickers = [os.path.splitext(os.path.splitext(f)[0])[0] for f in files]
+            tickers.update(nse_tickers)
+        except Exception:
+            pass  # Silently continue if unable to list
+
+    # If no local data found, return NIFTY 50 default tickers (for Streamlit Cloud compatibility)
+    if not tickers:
+        tickers = {
+            "ADANIPORTS", "ASIANPAINT", "AXISBANK", "BAJAJ-AUTO", "BAJAJFINSV",
+            "BAJFINANCE", "BHARTIARTL", "BPCL", "BRITANNIA", "CIPLA",
+            "COALINDIA", "DRREDDY", "EICHERMOT", "GAIL", "GRASIM",
+            "HCLTECH", "HEROMOTOCO", "HINDALCO", "HINDUNILVR", "ICICIBANK",
+            "INDUSINDBK", "INFY", "IOC", "ITC", "JSWSTEEL",
+            "KOTAKBANK", "LT", "MARUTI", "MM", "NESTLEIND",
+            "NTPC", "ONGC", "POWERGRID", "RELIANCE", "SBIN",
+            "SHREECEM", "SUNPHARMA", "TATAMOTORS", "TATASTEEL", "TCS",
+            "TECHM", "TITAN", "ULTRACEMCO", "UPL", "VEDL", "WIPRO", "ZEEL"
+        }
 
     return sorted(list(tickers))
 
 
 @lru_cache(maxsize=32)
 def load_stock_data(ticker: str, data_dir: str = None) -> pd.DataFrame:
-    """Load stock historical data for a given ticker from the local CSV dataset."""
+    """Load stock historical data for a given ticker from the local CSV dataset.
+    Falls back to yfinance if local data is not available (e.g., in Streamlit Cloud)."""
+    
+    # Try to load from local CSV
     if data_dir is None:
+        path = None
         # First try Nifty50 folder
-        path = os.path.join(NIFTY50_FOLDER, f"{ticker}.csv")
-        if not os.path.isfile(path):
+        nifty_path = os.path.join(NIFTY50_FOLDER, f"{ticker}.csv")
+        if os.path.isfile(nifty_path):
+            path = nifty_path
+        else:
             # Try NSE stocks folder with .NS.csv extension
-            path = os.path.join(NSE_STOCKS_FOLDER, f"{ticker}.NS.csv")
-            if not os.path.isfile(path):
-                raise FileNotFoundError(f"Stock CSV not found for ticker '{ticker}' in either data directory")
+            nse_path = os.path.join(NSE_STOCKS_FOLDER, f"{ticker}.NS.csv")
+            if os.path.isfile(nse_path):
+                path = nse_path
 
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"Stock CSV not found for ticker '{ticker}' at {path}")
+        # If found, load from CSV
+        if path:
+            try:
+                df = pd.read_csv(path)
+                # Standardize column names
+                df.columns = [c.strip() for c in df.columns]
 
-    df = pd.read_csv(path)
-    # Standardize column names
-    df.columns = [c.strip() for c in df.columns]
+                # convert date and ensure sorting
+                if "Date" in df.columns:
+                    df["Date"] = pd.to_datetime(df["Date"])
+                    df = df.sort_values("Date").reset_index(drop=True)
+                else:
+                    raise ValueError(f"CSV for {ticker} does not contain a 'Date' column")
 
-    # convert date and ensure sorting
-    if "Date" in df.columns:
+                # ensure numeric columns
+                for col in ["Open", "High", "Low", "Close", "Volume"]:
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+                return df
+            except Exception as e:
+                # If CSV loading fails, fall back to yfinance below
+                pass
+
+    # Fallback: Use yfinance for live data (works in Streamlit Cloud)
+    try:
+        import yfinance as yf
+        # Append .NS suffix for Indian stocks if not already present
+        symbol = ticker if ticker.endswith(".NS") else f"{ticker}.NS"
+        df = yf.download(symbol, progress=False)
+        
+        # Reset index to make Date a column
+        df = df.reset_index()
+        df.columns = [c.strip() for c in df.columns]
+        
+        # Standardize column names (yfinance uses 'Date' or 'Datetime')
+        if "Datetime" in df.columns:
+            df = df.rename(columns={"Datetime": "Date"})
+        if "Date" not in df.columns:
+            raise ValueError(f"Could not find Date column in yfinance data for {ticker}")
+        
         df["Date"] = pd.to_datetime(df["Date"])
         df = df.sort_values("Date").reset_index(drop=True)
-    else:
-        raise ValueError(f"CSV for {ticker} does not contain a 'Date' column")
-
-    # ensure numeric columns
-    for col in ["Open", "High", "Low", "Close", "Volume"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    return df
+        
+        return df
+    except Exception as e:
+        raise FileNotFoundError(f"Could not load stock data for '{ticker}' from local CSV or yfinance: {e}")
 
 
 def filter_by_date(df: pd.DataFrame, start_date=None, end_date=None) -> pd.DataFrame:
